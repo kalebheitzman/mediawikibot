@@ -125,11 +125,7 @@ class MediaWikiBot {
 		// get the data
 		$data = $this->curl_post($url, $params);
 		// return or set data
-		if ($data['login']['result'] == "Success") {
-			// set session information
-			$this->session = $this->build_session($data);
-		} else {
-			// return the data for confirmation
+		if ($data['login']['result'] != "Success") {
 			return $data;
 		}				
 	}
@@ -170,23 +166,6 @@ class MediaWikiBot {
 		$url = DOMAIN . WIKI . "/api.php?action={$function}&";
 		// return the url
 		return $url;
-	}
-	
-	/** Build the needed session info
-	 */
-	private function build_session($login)
-	{
-		// get the login info
-		$session = $login['login'];
-		// get the cookie prefix
-		$cookie = $session['cookieprefix'];
-		// build the fields
-		$fields["{$cookie}_session"] = $session['sessionid'];
-		$fields["{$cookie}UserName"] = $session['lgusername'];
-		$fields["{$cookie}UserID"] = $session['lguserid'];
-		$fields["{$cookie}Token"] = $session['lgtoken'];
-		// return the fields
-		return $fields;
 	}
 	
 	/** Execute curl post
