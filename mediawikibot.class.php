@@ -9,7 +9,7 @@
  *
  *  MediaWikiBot PHP Class
  *
- *  The MediaWikiBot Class provides an easy to use interface for the
+ *  The MediaWikiBot PHP Class provides an easy to use interface for the
  *  MediaWiki api.  It dynamically builds functions based on what is available
  *  in the api.  This version supports Semantic MediaWiki.
  *
@@ -101,13 +101,20 @@ class MediaWikiBot {
 	public function __call($method, $args) {
 		// get the params
 		$params = $args[0];
+		// check for multipart
+		$multipart = $args[1];
 		// check for valid method
-		if (in_array($method, $this->apimethods))
+		if (in_array($method, $this->apimethods)) {
+			// get multipart info
+			if ($multipart == null) {
+				$multipart = $this->multipart($method);
+			}
 			// process the params
-			return $this->standard_process($method, $params);
-		else
+			return $this->standard_process($method, $params, $multipart);
+		} else {
 			// not a valid method, kill the process
 			die("$method is not a valid method \r\n");
+		}
 	}
 
 	/** Log in and get the authentication tokens
@@ -150,7 +157,7 @@ class MediaWikiBot {
 	 *  and executes a curl post request.  It then returns processed data
 	 *  based on what format has been set (default=php).
 	 */
-	private function standard_process($method, $params = null)
+	private function standard_process($method, $params = null, $multipart = false)
 	{
 		// check for null params
 		if ( ! in_array($method, $this->parampass)) {
@@ -163,7 +170,7 @@ class MediaWikiBot {
 		// build the url
 		$url = $this->api_url($method);
 		// get the data
-		$data = $this->curl_post($url, $params, $this->multipart($method));
+		$data = $this->curl_post($url, $params, $multipart);
 		// set smwinfo
 		$this->$method = $data;
 		// return the data
@@ -207,8 +214,10 @@ class MediaWikiBot {
 	 */
 	private function multipart($method)
 	{
+		// get multipart true/false
+		$multipart = in_array($method, $this->multipart);
 		// check to see if multipart method exists and return true/false
-		return in_array($method, $this->multipart) ? true : false;
+		return $multipart;
 	}
 
 	/** Format results based on format (default=php)
