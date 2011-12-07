@@ -83,10 +83,6 @@ class MediaWikiBot {
 			} else {
 				$multipart = false;
 			}
-			// unset the session if logout called
-			if ($method == 'logout') {
-				unset($this->session);
-			}
 			// process the params	
 			return $this->standard_process($method, $params, $multipart);
 		} else {
@@ -130,42 +126,26 @@ class MediaWikiBot {
 		}				
 	}
 	
-	/** Check for null params
+	/** Standard processesing method
 	 *
-	 *  If needed params are not passed then kill the script. 
+	 *  The standard process methods calls the correct api url with params
+	 *  and executes a curl post request.  It then returns processed data
+	 *  based on what format has been set (default=php).
 	 */
-	private function check_params($params)
+	private function standard_process($method, $params = null, $multipart = false)
 	{
-		// check for null
-		if ($params == null) {
-			die("You didn't pass any params. \r\n");
-		} else {
-			return;
+		// check for null params
+		if ( ! in_array($method, $this->apimethods)) {
+			$this->check_params($params);			
 		}
-	}
-	
-	/** Build a url string out of params
-	 */
-	private function urlize_params($params)
-	{
-		// url-ify the data for POST
-		foreach ($params as $key => $value) {
-			$urlstring .= $key . '=' . $value . '&';
-		}
-		// pull the & off the end
-		rtrim($urlstring, '&');	
-		// return the string
-		return $urlstring;
-	}
-	
-	/** Build the needed api url
-	 */
-	private function api_url($function)
-	{
 		// build the url
-		$url = DOMAIN . WIKI . "/api.php?action={$function}&";
-		// return the url
-		return $url;
+		$url = $this->api_url($method);
+		// get the data
+		$data = $this->curl_post($url, $params);
+		// set smwinfo
+		$this->$method = $data;
+		// return the data
+		return $data;
 	}
 	
 	/** Execute curl post
@@ -187,40 +167,12 @@ class MediaWikiBot {
 		curl_setopt ($ch, CURLOPT_COOKIEJAR, COOKIES);
 		curl_setopt($ch, CURLOPT_POST, count($parms));
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
-		// set more curl opts for login confirmation
-		/*if ($options != null) {
-			foreach ($options as $key => $value) {
-				curl_setopt($ch, $key, $value);
-			}
-		}*/
 		// execute the post
 		$results = curl_exec($ch);		
 		// close the connection
 		curl_close($ch);
 		// return the unserialized results
 		return $this->format_results($results, $params['format']);
-	}
-	
-	/** Standard processesing method
-	 *
-	 *  The standard process methods calls the correct api url with params
-	 *  and executes a curl post request.  It then returns processed data
-	 *  based on what format has been set (default=php).
-	 */
-	private function standard_process($method, $params = null, $multipart = false)
-	{
-		// check for null params
-		if ( ! in_array($method, $this->apimethods)) {
-			$this->check_params($params);			
-		}
-		// build the url
-		$url = $this->api_url($method);
-		// get the data
-		$data = $this->curl_post($url, $params);
-		// set smwinfo
-		$this->$method = $data;
-		// return the data
-		return $data;
 	}
 	
 	/** Format results based on format (default=php)
@@ -280,6 +232,44 @@ class MediaWikiBot {
 				return $results;
 				break;
 		}
+	}
+	
+	/** Check for null params
+	 *
+	 *  If needed params are not passed then kill the script. 
+	 */
+	private function check_params($params)
+	{
+		// check for null
+		if ($params == null) {
+			die("You didn't pass any params. \r\n");
+		} else {
+			return;
+		}
+	}
+	
+	/** Build a url string out of params
+	 */
+	private function urlize_params($params)
+	{
+		// url-ify the data for POST
+		foreach ($params as $key => $value) {
+			$urlstring .= $key . '=' . $value . '&';
+		}
+		// pull the & off the end
+		rtrim($urlstring, '&');	
+		// return the string
+		return $urlstring;
+	}
+	
+	/** Build the needed api url
+	 */
+	private function api_url($function)
+	{
+		// build the url
+		$url = DOMAIN . WIKI . "/api.php?action={$function}&";
+		// return the url
+		return $url;
 	}
 
 }
