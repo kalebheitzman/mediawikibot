@@ -178,11 +178,16 @@ class MediaWikiBot {
 		return $this->format_results($results, $params['format']);
 	}
 	
+	/** Check for multipart method
+	 */
 	private function multipart($method) 
 	{
+		// check to see if multipart method exists
 		if (in_array($method, $multipart)) {
+			// if so, return true
 			return true;
 		} else {
+			// otherwise, return false
 			return false;
 		}
 	}
