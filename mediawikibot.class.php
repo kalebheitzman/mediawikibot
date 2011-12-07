@@ -55,7 +55,8 @@ class MediaWikiBot {
 		 *  Simply redeclare them after you have done a php require on the 
 		 *  MediaWikiBot class.
 		 */
-		define('URL', 'http://example.com/wiki');
+		define('DOMAIN', 'http://example.com/');
+		define('WIKI', 'wiki');
 		define('USERNAME', 'bot');
 		define('PASSWORD', 'password');
 		define('USERAGENT', 'WikimediaBot Framework by JKH');		

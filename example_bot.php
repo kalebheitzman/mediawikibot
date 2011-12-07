@@ -4,7 +4,8 @@
 require_once('mediawikibot.class.php');
 
 // set some needed constants that will override the default constants
-define('URL', 'http://localhost/discipleship');
+define('DOMAIN', 'http://localhost');
+define('WIKI', '/discipleship');
 define('USERNAME', 'wikibot');
 define('PASSWORD', '@dmin22');
 
