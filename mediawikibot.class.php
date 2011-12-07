@@ -102,14 +102,12 @@ class MediaWikiBot {
 		// get the params
 		$params = $args[0];
 		// check for valid method
-		if (in_array($method, $this->apimethods)) {
+		if (in_array($method, $this->apimethods))
 			// process the params
 			return $this->standard_process($method, $params);
-		} else {
+		else
 			// not a valid method, kill the process
 			die("$method is not a valid method \r\n");
-		}
-
 	}
 
 	/** Log in and get the authentication tokens
@@ -121,6 +119,12 @@ class MediaWikiBot {
 	{
 		// build the url
 		$url = $this->api_url(__FUNCTION__);
+		// build the params
+		$params = array(
+			'lgname' => USERNAME,
+			'lgpassword' => PASSWORD,
+			'format' => 'php' // do not change this from php
+		);
 		// get initial login info
 		if ($init == null) {
 			$results = $this->login(true);
@@ -128,12 +132,6 @@ class MediaWikiBot {
 		} else {
 			$results = null;
 		}
-		// build the params
-		$params = array(
-			'lgname' => USERNAME,
-			'lgpassword' => PASSWORD,
-			'format' => 'php' // don't change this form php
-		);
 		// pass token if not null
 		if ($results != null) {
 			$params['lgtoken'] = $results['login']['token'];
@@ -210,14 +208,8 @@ class MediaWikiBot {
 	 */
 	private function multipart($method)
 	{
-		// check to see if multipart method exists
-		if (in_array($method, $this->multipart)) {
-			// if so, return true
-			return true;
-		} else {
-			// otherwise, return false
-			return false;
-		}
+		// check to see if multipart method exists and return true/false
+		return in_array($method, $this->multipart) ? true : false;
 	}
 
 	/** Format results based on format (default=php)
@@ -227,28 +219,20 @@ class MediaWikiBot {
 		switch($format) {
 			case 'json':
 				return json_decode($results);
-				break;
 			case 'php':
 				return unserialize($results);
-				break;
 			case 'wddx':
 				return wddx_deserialize($results);
-				break;
 			case 'xml':
 				return simplexml_load_string($results);
-				break;
 			case 'yaml':
 				return $results;
-				break;
 			case 'txt':
 				return $results;
-				break;
 			case 'dbg':
 				return $results;
-				break;
 			case 'dump':
 				return $results;
-				break;
 		}
 	}
 
@@ -259,11 +243,7 @@ class MediaWikiBot {
 	private function check_params($params)
 	{
 		// check for null
-		if ($params == null) {
-			die("You didn't pass any params. \r\n");
-		} else {
-			return;
-		}
+		if ($params == null) die("You didn't pass any params. \r\n");
 	}
 
 	/** Build a url string out of params
@@ -284,10 +264,8 @@ class MediaWikiBot {
 	 */
 	private function api_url($function)
 	{
-		// build the url
-		$url = DOMAIN . WIKI . "/api.php?action={$function}&";
 		// return the url
-		return $url;
+		return DOMAIN . WIKI . "/api.php?action={$function}&";
 	}
 
 }
