@@ -1,4 +1,5 @@
 <?php
+
 /** MediaWikiBot Class
  *
  *  The MediaWikiBot Class provides an easy to use interface for the 
@@ -19,6 +20,7 @@
  *  @email  jkheitzman@gmail.com
  *  @date	2012-12-07 01:10 -0500
  */
+
 class MediaWikiBot {
 	
 	/** Methods set by the mediawiki api
@@ -163,8 +165,8 @@ class MediaWikiBot {
 		curl_setopt($ch, CURLOPT_USERAGENT, USERAGENT);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-		curl_setopt ($ch, CURLOPT_COOKIEFILE, COOKIES);
-		curl_setopt ($ch, CURLOPT_COOKIEJAR, COOKIES);
+		curl_setopt($ch, CURLOPT_COOKIEFILE, COOKIES);
+		curl_setopt($ch, CURLOPT_COOKIEJAR, COOKIES);
 		curl_setopt($ch, CURLOPT_POST, count($parms));
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
 		// execute the post
@@ -183,52 +185,25 @@ class MediaWikiBot {
 			case 'json':
 				return json_decode($results);
 				break;
-			case 'jsonfm':
-				return $results;
-				break;
 			case 'php':
 				return unserialize($results);
 				break;
-			case 'phpfm':
-				return $results;
-				break;
 			case 'wddx':
-				return $results;
-				break;
-			case 'wddxfm':
-				return $results;
+				return wddx_deserialize($results);
 				break;
 			case 'xml':
-				return $results;
-				break;
-			case 'xmlfm':
-				return $results;
+				return simplexml_load_string($results);
 				break;
 			case 'yaml':
-				return $results;
-				break;
-			case 'yamlfm':
-				return $results;
-				break;
-			case 'rawfm':
 				return $results;
 				break;
 			case 'txt':
 				return $results;
 				break;
-			case 'txtfm':
-				return $results;
-				break;
 			case 'dbg':
 				return $results;
 				break;
-			case 'dbgfm':
-				return $results;
-				break;
 			case 'dump':
-				return $results;
-				break;
-			case 'dumpfm':
 				return $results;
 				break;
 		}
