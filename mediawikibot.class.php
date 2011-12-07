@@ -16,9 +16,10 @@
  *  $params = array('text' => '==Heading 2==');
  *  $bot->parse($params);
  *
- *  @author Kaleb Heitzman
- *  @email  jkheitzman@gmail.com
- *  @date	2012-12-07 01:10 -0500
+ *  @author 	Kaleb Heitzman
+ *  @email  	jkheitzman@gmail.com
+ *  @license 	The MIT License (MIT)
+ *  @date		2012-12-07 02:55 -0500
  */
 
 class MediaWikiBot {
@@ -75,10 +76,6 @@ class MediaWikiBot {
 		$params = $args[0];
 		// check for valid method
 		if (in_array($method, $this->apimethods)) {
-			// specify xml format if needed
-			if (in_array($method, $this->xmlmethods)) {
-				$params['format'] = 'xml';
-			}
 			// process the params	
 			return $this->standard_process($method, $params);
 		} else {
@@ -133,6 +130,10 @@ class MediaWikiBot {
 		// check for null params
 		if ( ! in_array($method, $this->apimethods)) {
 			$this->check_params($params);			
+		}
+		// specify xml format if needed
+		if (in_array($method, $this->xmlmethods)) {
+			$params['format'] = 'xml';
 		}
 		// build the url
 		$url = $this->api_url($method);
