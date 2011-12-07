@@ -79,14 +79,8 @@ class MediaWikiBot {
 			if (in_array($method, $this->xmlmethods)) {
 				$params['format'] = 'xml';
 			}
-			// specify multipart/form-date if needed
-			if (in_array($method, $this->multipart)) {
-				$multipart = true;
-			} else {
-				$multipart = false;
-			}
 			// process the params	
-			return $this->standard_process($method, $params, $multipart);
+			return $this->standard_process($method, $params);
 		} else {
 			// not a valid method, kill the process
 			die("$method is not a valid method \r\n");
@@ -134,7 +128,7 @@ class MediaWikiBot {
 	 *  and executes a curl post request.  It then returns processed data
 	 *  based on what format has been set (default=php).
 	 */
-	private function standard_process($method, $params = null, $multipart = false)
+	private function standard_process($method, $params = null)
 	{
 		// check for null params
 		if ( ! in_array($method, $this->apimethods)) {
@@ -143,7 +137,7 @@ class MediaWikiBot {
 		// build the url
 		$url = $this->api_url($method);
 		// get the data
-		$data = $this->curl_post($url, $params);
+		$data = $this->curl_post($url, $params, $this->multipart($method));
 		// set smwinfo
 		$this->$method = $data;
 		// return the data
@@ -152,7 +146,7 @@ class MediaWikiBot {
 	
 	/** Execute curl post
 	 */
-	private function curl_post($url, $params)
+	private function curl_post($url, $params, $multipart = false)
 	{
 		// set the format if not specified
 		if (empty($params['format'])) {
@@ -168,13 +162,29 @@ class MediaWikiBot {
 		curl_setopt($ch, CURLOPT_COOKIEFILE, COOKIES);
 		curl_setopt($ch, CURLOPT_COOKIEJAR, COOKIES);
 		curl_setopt($ch, CURLOPT_POST, count($parms));
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
+		// choose multipart if necessary
+		if ($multipart) {
+			// submit as multipart
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+		} else {
+			// submit as normal
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
+		}
 		// execute the post
 		$results = curl_exec($ch);		
 		// close the connection
 		curl_close($ch);
 		// return the unserialized results
 		return $this->format_results($results, $params['format']);
+	}
+	
+	private function multipart($method) 
+	{
+		if (in_array($method, $multipart)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	/** Format results based on format (default=php)
