@@ -24,19 +24,17 @@ class MediaWikiBot {
 	/** Methods set by the mediawiki api
 	 */
 	protected $apimethods = array('smwinfo', 'login', 'logout', 'query', 
-								'expandtemplates', 'parse', 'opensearch', 
-								'feedcontributions', 'feedwatchlist', 'help', 
-								'paraminfo', 'rsd', 'compare', 'purge', 
-								'rollback', 'delete', 'undelete', 'protect', 
-								'block', 'unblock', 'move', 'edit', 'upload', 
-								'filerevert', 'emailuser', 'watch', 'patrol', 
-								'import', 'userrights');
+		'expandtemplates', 'parse', 'opensearch', 'feedcontributions', 
+		'feedwatchlist', 'help', 'paraminfo', 'rsd', 'compare', 'purge', 
+		'rollback', 'delete', 'undelete', 'protect', 'block', 'unblock', 
+		'move', 'edit', 'upload', 'filerevert', 'emailuser', 'watch', 
+		'patrol', 'import', 'userrights');
 	
 	/** Methods that need an xml format
 	 */
 	protected $xmlmethods = array('opensearch', 'feedcontributions', 
-								'feedwatchlist', 'rsd');
-	
+		'feedwatchlist', 'rsd');
+			
 	/** Methods that need multipart/form-date
 	 */
 	protected $multipart = array('upload', 'import');
@@ -59,6 +57,7 @@ class MediaWikiBot {
 		define('WIKI', '/wiki');
 		define('USERNAME', 'bot');
 		define('PASSWORD', 'password');
+		define('COOKIES', 'cookies.tmp');
 		define('USERAGENT', 'WikimediaBot Framework by JKH');		
 		define('FORMAT', 'php');
 	}	
@@ -69,7 +68,9 @@ class MediaWikiBot {
 	 *  If the method exists in the array then it is a valid api call and 
 	 *  based on some php5 magic, the call is executed.
 	 */
-	public function __call($method, $params) {
+	public function __call($method, $args) {
+		// get the params
+		$params = $args[0];
 		// check for valid method
 		if (in_array($method, $this->apimethods)) {
 			// specify xml format if needed
@@ -121,15 +122,8 @@ class MediaWikiBot {
 		if ($results != null) {
 			$params['lgtoken'] = $results['login']['token'];
 		}
-		// set some options
-		$options = array();
-		if ($results != null) {
-			$options = array(
-				CURLOPT_COOKIE => $results['login']['cookieprefix'] . "_session=" . $results['login']['sessionid']
-			);
-		}
 		// get the data
-		$data = $this->curl_post($url, $params, $options);
+		$data = $this->curl_post($url, $params);
 		// return or set data
 		if ($data['login']['result'] == "Success") {
 			// set session information
@@ -138,38 +132,6 @@ class MediaWikiBot {
 			// return the data for confirmation
 			return $data;
 		}				
-	}
-		
-	/** Query API module allows applications to get needed pieces of data from 
-	 *	the MediaWiki databases.
-	 */
-	function query($method = null, $params = null) 
-	{
-		// check for method
-		if ($method == null) { die("You didn't specify a query method. \r\n"); }
-		
-		// check for params
-		$this->check_params($params);
-		
-		// available methods
-		$methods = array(
-			'titles', 
-			'pageids', 
-			'revids', 
-			'prop', 
-			'list', 
-			'meta', 
-			'generator', 
-			'redirects', 
-			'converttitles', 
-			'indexpageids', 
-			'export', 
-			'exportnowrap', 
-			'iwurl'
-		);
-		$method = "query_{$method}";
-
-		$this->$method();
 	}
 	
 	/** Check for null params
@@ -229,7 +191,7 @@ class MediaWikiBot {
 	
 	/** Execute curl post
 	 */
-	private function curl_post($url, $params, $options = null)
+	private function curl_post($url, $params)
 	{
 		// set the format if not specified
 		if (empty($params['format'])) {
@@ -242,16 +204,18 @@ class MediaWikiBot {
 		curl_setopt($ch, CURLOPT_USERAGENT, USERAGENT);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+		curl_setopt ($ch, CURLOPT_COOKIEFILE, COOKIES);
+		curl_setopt ($ch, CURLOPT_COOKIEJAR, COOKIES);
 		curl_setopt($ch, CURLOPT_POST, count($parms));
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
 		// set more curl opts for login confirmation
-		if ($options != null) {
+		/*if ($options != null) {
 			foreach ($options as $key => $value) {
 				curl_setopt($ch, $key, $value);
 			}
-		}
+		}*/
 		// execute the post
-		$results = curl_exec($ch);			
+		$results = curl_exec($ch);		
 		// close the connection
 		curl_close($ch);
 		// return the unserialized results
