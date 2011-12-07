@@ -1,25 +1,25 @@
 <?php
 
-/**                     _ _                _ _    _ _           _   
- *                     | (_)              (_) |  (_) |         | |  
- *   _ __ ___   ___  __| |_  __ ___      ___| | ___| |__   ___ | |_ 
+/**                     _ _                _ _    _ _           _
+ *                     | (_)              (_) |  (_) |         | |
+ *   _ __ ___   ___  __| |_  __ ___      ___| | ___| |__   ___ | |_
  *  | '_ ` _ \ / _ \/ _` | |/ _` \ \ /\ / / | |/ / | '_ \ / _ \| __|
- *  | | | | | |  __/ (_| | | (_| |\ V  V /| |   <| | |_) | (_) | |_ 
+ *  | | | | | |  __/ (_| | | (_| |\ V  V /| |   <| | |_) | (_) | |_
  *  |_| |_| |_|\___|\__,_|_|\__,_| \_/\_/ |_|_|\_\_|_.__/ \___/ \__|
  *
  *  MediaWikiBot Class
  *
- *  The MediaWikiBot Class provides an easy to use interface for the 
+ *  The MediaWikiBot Class provides an easy to use interface for the
  *  MediaWiki api.  It dynamically builds functions based on what is available
  *  in the api.  This version supports Semantic MediaWiki.
  *
  *  You do a simple require_once('/path/to/mediawikibot.class.php') in your
  *  own bot file and initiate a new MediaWikiBot() object.  This class
  *  supports all of the api calls that you can find on your wiki/api.php page.
- *  
+ *
  *  You build the $params and then call the action.
  *
- *  For example, 
+ *  For example,
  *  $params = array('text' => '==Heading 2==');
  *  $bot->parse($params);
  *
@@ -28,47 +28,47 @@
  *  @license 	The MIT License (MIT)
  *  @date		2012-12-07 02:55 -0500
  *
- * 	The MIT License (MIT) Copyright (c) 2011 Kaleb Heitzman
- * 
- * 	Permission is hereby granted, free of charge, to any person obtaining a  
- * 	copy of this software and associated documentation files (the "Software"), 
- * 	to deal in the Software without restriction, including without limitation 
- * 	the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- * 	and/or sell copies of the Software, and to permit persons to whom the 
- * 	Software is furnished to do so, subject to the following conditions:
- * 	
- *  The above copyright notice and this permission notice shall be included in 
- *	all copies or substantial portions of the Software.
- * 
+ *  The MIT License (MIT) Copyright (c) 2011 Kaleb Heitzman
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
+ *  Software is furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
- * 	THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING  
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
- *	DEALINGS IN THE SOFTWARE.
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ *  DEALINGS IN THE SOFTWARE.
  */
 
 class MediaWikiBot {
-	
+
 	/** Methods set by the mediawiki api
 	 */
-	protected $apimethods = array('smwinfo', 'login', 'logout', 'query', 
-		'expandtemplates', 'parse', 'opensearch', 'feedcontributions', 
-		'feedwatchlist', 'help', 'paraminfo', 'rsd', 'compare', 'purge', 
-		'rollback', 'delete', 'undelete', 'protect', 'block', 'unblock', 
-		'move', 'edit', 'upload', 'filerevert', 'emailuser', 'watch', 
+	protected $apimethods = array('smwinfo', 'login', 'logout', 'query',
+		'expandtemplates', 'parse', 'opensearch', 'feedcontributions',
+		'feedwatchlist', 'help', 'paraminfo', 'rsd', 'compare', 'purge',
+		'rollback', 'delete', 'undelete', 'protect', 'block', 'unblock',
+		'move', 'edit', 'upload', 'filerevert', 'emailuser', 'watch',
 		'patrol', 'import', 'userrights');
-	
+
 	/** Methods that need an xml format
 	 */
-	protected $xmlmethods = array('opensearch', 'feedcontributions', 
+	protected $xmlmethods = array('opensearch', 'feedcontributions',
 		'feedwatchlist', 'rsd');
-			
+
 	/** Methods that need multipart/form-date
 	 */
 	protected $multipart = array('upload', 'import');
-								
+
 	/** Methods that do not need a param check
 	 */
 	protected $parampass = array('login', 'logout', 'rsd');
@@ -80,7 +80,7 @@ class MediaWikiBot {
 		/** Set some constants
 		 *
 		 *  You should override these in the bot that you are creating.
-		 *  Simply redeclare them after you have done a php require on the 
+		 *  Simply redeclare them after you have done a php require on the
 		 *  MediaWikiBot class.
 		 */
 		define('DOMAIN', 'http://example.com');
@@ -88,14 +88,14 @@ class MediaWikiBot {
 		define('USERNAME', 'bot');
 		define('PASSWORD', 'password');
 		define('COOKIES', 'cookies.tmp');
-		define('USERAGENT', 'WikimediaBot Framework by JKH');		
+		define('USERAGENT', 'WikimediaBot Framework by JKH');
 		define('FORMAT', 'php');
-	}	
-	
+	}
+
 	/** Dynamic function server
 	 *
 	 *  This builds dyamic api calls based on the protected apimethods var.
-	 *  If the method exists in the array then it is a valid api call and 
+	 *  If the method exists in the array then it is a valid api call and
 	 *  based on some php5 magic, the call is executed.
 	 */
 	public function __call($method, $args) {
@@ -103,15 +103,15 @@ class MediaWikiBot {
 		$params = $args[0];
 		// check for valid method
 		if (in_array($method, $this->apimethods)) {
-			// process the params	
+			// process the params
 			return $this->standard_process($method, $params);
 		} else {
 			// not a valid method, kill the process
 			die("$method is not a valid method \r\n");
 		}
-		
+
 	}
-		
+
 	/** Log in and get the authentication tokens
 	 *
 	 *  MediaWiki requires a dual login method to confirm authenticity. This
@@ -127,7 +127,7 @@ class MediaWikiBot {
 			$results = (array) $results;
 		} else {
 			$results = null;
-		}	
+		}
 		// build the params
 		$params = array(
 			'lgname' => USERNAME,
@@ -143,9 +143,9 @@ class MediaWikiBot {
 		// return or set data
 		if ($data['login']['result'] != "Success") {
 			return $data;
-		}				
+		}
 	}
-	
+
 	/** Standard processesing method
 	 *
 	 *  The standard process methods calls the correct api url with params
@@ -156,7 +156,7 @@ class MediaWikiBot {
 	{
 		// check for null params
 		if ( ! in_array($method, $this->parampass)) {
-			$this->check_params($params);			
+			$this->check_params($params);
 		}
 		// specify xml format if needed
 		if (in_array($method, $this->xmlmethods)) {
@@ -171,7 +171,7 @@ class MediaWikiBot {
 		// return the data
 		return $data;
 	}
-	
+
 	/** Execute curl post
 	 */
 	private function curl_post($url, $params, $multipart = false)
@@ -199,16 +199,16 @@ class MediaWikiBot {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
 		}
 		// execute the post
-		$results = curl_exec($ch);		
+		$results = curl_exec($ch);
 		// close the connection
 		curl_close($ch);
 		// return the unserialized results
 		return $this->format_results($results, $params['format']);
 	}
-	
+
 	/** Check for multipart method
 	 */
-	private function multipart($method) 
+	private function multipart($method)
 	{
 		// check to see if multipart method exists
 		if (in_array($method, $this->multipart)) {
@@ -219,7 +219,7 @@ class MediaWikiBot {
 			return false;
 		}
 	}
-	
+
 	/** Format results based on format (default=php)
 	 */
 	private function format_results($results, $format)
@@ -251,10 +251,10 @@ class MediaWikiBot {
 				break;
 		}
 	}
-	
+
 	/** Check for null params
 	 *
-	 *  If needed params are not passed then kill the script. 
+	 *  If needed params are not passed then kill the script.
 	 */
 	private function check_params($params)
 	{
@@ -265,7 +265,7 @@ class MediaWikiBot {
 			return;
 		}
 	}
-	
+
 	/** Build a url string out of params
 	 */
 	private function urlize_params($params)
@@ -275,11 +275,11 @@ class MediaWikiBot {
 			$urlstring .= $key . '=' . $value . '&';
 		}
 		// pull the & off the end
-		rtrim($urlstring, '&');	
+		rtrim($urlstring, '&');
 		// return the string
 		return $urlstring;
 	}
-	
+
 	/** Build the needed api url
 	 */
 	private function api_url($function)
