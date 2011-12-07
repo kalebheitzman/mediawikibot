@@ -92,7 +92,7 @@ class MediaWikiBot {
 		define('FORMAT', 'php');
 	}
 
-	/** Dynamic function server
+	/** Dynamic method server
 	 *
 	 *  This builds dyamic api calls based on the protected apimethods var.
 	 *  If the method exists in the array then it is a valid api call and
