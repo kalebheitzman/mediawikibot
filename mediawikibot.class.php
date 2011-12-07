@@ -7,7 +7,7 @@
  *  | | | | | |  __/ (_| | | (_| |\ V  V /| |   <| | |_) | (_) | |_
  *  |_| |_| |_|\___|\__,_|_|\__,_| \_/\_/ |_|_|\_\_|_.__/ \___/ \__|
  *
- *  MediaWikiBot Class
+ *  MediaWikiBot PHP Class
  *
  *  The MediaWikiBot Class provides an easy to use interface for the
  *  MediaWiki api.  It dynamically builds functions based on what is available
@@ -189,13 +189,12 @@ class MediaWikiBot {
 		curl_setopt($ch, CURLOPT_COOKIEJAR, COOKIES);
 		curl_setopt($ch, CURLOPT_POST, count($parms));
 		// choose multipart if necessary
-		if ($multipart) {
+		if ($multipart)
 			// submit as multipart
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-		} else {
+		else
 			// submit as normal
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
-		}
 		// execute the post
 		$results = curl_exec($ch);
 		// close the connection
