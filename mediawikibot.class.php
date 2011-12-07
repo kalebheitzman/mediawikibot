@@ -44,7 +44,7 @@ class MediaWikiBot {
 								
 	/** Methods that do not need a param check
 	 */
-	protected $parampass = array('rsd');
+	protected $parampass = array('login', 'logout', 'rsd');
 
 	/** Constructor
 	 */
@@ -128,7 +128,7 @@ class MediaWikiBot {
 	private function standard_process($method, $params = null)
 	{
 		// check for null params
-		if ( ! in_array($method, $this->apimethods)) {
+		if ( ! in_array($method, $this->parampass)) {
 			$this->check_params($params);			
 		}
 		// specify xml format if needed
@@ -184,7 +184,7 @@ class MediaWikiBot {
 	private function multipart($method) 
 	{
 		// check to see if multipart method exists
-		if (in_array($method, $multipart)) {
+		if (in_array($method, $this->multipart)) {
 			// if so, return true
 			return true;
 		} else {
