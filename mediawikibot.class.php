@@ -211,7 +211,7 @@ class MediaWikiBot {
 	private function api_url($function)
 	{
 		// build the url
-		$url = URL . "/api.php?action={$function}&";
+		$url = DOMAIN . WIKI . "/api.php?action={$function}&";
 		// return the url
 		return $url;
 	}
@@ -273,7 +273,7 @@ class MediaWikiBot {
 	private function standard_process($method, $params = null, $multipart = false)
 	{
 		// check for null params
-		if ( ! in_array($method, $this->methods)) {
+		if ( ! in_array($method, $this->apimethods)) {
 			$this->check_params($params);			
 		}
 		// build the url
