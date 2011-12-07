@@ -55,8 +55,8 @@ class MediaWikiBot {
 		 *  Simply redeclare them after you have done a php require on the 
 		 *  MediaWikiBot class.
 		 */
-		define('DOMAIN', 'http://example.com/');
-		define('WIKI', 'wiki');
+		define('DOMAIN', 'http://example.com');
+		define('WIKI', '/wiki');
 		define('USERNAME', 'bot');
 		define('PASSWORD', 'password');
 		define('USERAGENT', 'WikimediaBot Framework by JKH');		
@@ -81,6 +81,10 @@ class MediaWikiBot {
 				$multipart = true;
 			} else {
 				$multipart = false;
+			}
+			// unset the session if logout called
+			if ($method == 'logout') {
+				unset($this->session);
 			}
 			// process the params	
 			return $this->standard_process($method, $params, $multipart);
@@ -135,17 +139,7 @@ class MediaWikiBot {
 			return $data;
 		}				
 	}
-	
-	/** Log out and clear session data
-	 */
-	function logout()
-	{
-		// process the params	
-		return $this->standard_process(__FUNCTION__, $params);		
-		// unset the session
-		unset($this->session);
-	}
-	
+		
 	/** Query API module allows applications to get needed pieces of data from 
 	 *	the MediaWiki databases.
 	 */
