@@ -1,3 +1,5 @@
+.gitignore
 example_bot.php
+verses_bot.php
 cookies.tmp
 .DS_Store
