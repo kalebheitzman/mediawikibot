@@ -195,7 +195,7 @@ class MediaWikiBot {
 		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 		curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiestore);
 		curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookiestore);
-		curl_setopt($ch, CURLOPT_POST, count($parms));
+		curl_setopt($ch, CURLOPT_POST, count($params));
 		// choose multipart if necessary
 		if ($multipart)
 			// submit as multipart
