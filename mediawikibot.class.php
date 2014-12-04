@@ -260,6 +260,7 @@ class MediaWikiBot {
 	private function urlize_params($params)
 	{
 		// url-ify the data for POST
+		$urlstring = "";
 		foreach ($params as $key => $value) {
 			$urlstring .= $key . '=' . $value . '&';
 		}
