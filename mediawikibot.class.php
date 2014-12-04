@@ -72,24 +72,22 @@ class MediaWikiBot {
 	/** Methods that do not need a param check
 	 */
 	protected $parampass = array('login', 'logout', 'rsd');
+	
+	/**
+	 * Configuration variables 
+	 */
+	protected $api;
+	protected $username    = 'bot';
+	protected $password    = 'password';
+	protected $cookiestore = 'cookies.tmp';
+	protected $useragent   = 'WikimediaBot Framework by JKH';
+	protected $apiformat   = 'php';
 
 	/** Constructor
 	 */
-	public function __construct()
+	public function __construct( $api )
 	{
-		/** Set some constants
-		 *
-		 *  You should override these in the bot that you are creating.
-		 *  Simply redeclare them after you have done a php require on the
-		 *  MediaWikiBot class.
-		 */
-		define('DOMAIN', 'http://example.com');
-		define('WIKI', '/wiki');
-		define('USERNAME', 'bot');
-		define('PASSWORD', 'password');
-		define('COOKIES', 'cookies.tmp');
-		define('USERAGENT', 'WikimediaBot Framework by JKH');
-		define('FORMAT', 'php');
+		$this->api = $api;
 	}
 
 	/** Dynamic method server
@@ -122,14 +120,17 @@ class MediaWikiBot {
 	 *  MediaWiki requires a dual login method to confirm authenticity. This
 	 *  entire method takes that into account.
 	 */
-	public function login($init = null)
+	public function login($init = null, $username = null, $password = null)
 	{
+		if (isset($username)) $this->username = $username;
+		if (isset($password)) $this->password = $password;
+		
 		// build the url
 		$url = $this->api_url(__FUNCTION__);
 		// build the params
 		$params = array(
-			'lgname' => USERNAME,
-			'lgpassword' => PASSWORD,
+			'lgname' => $this->username,
+			'lgpassword' => $this->password,
 			'format' => 'php' // do not change this from php
 		);
 		// get initial login info
@@ -183,17 +184,17 @@ class MediaWikiBot {
 	{
 		// set the format if not specified
 		if (empty($params['format'])) {
-			$params['format'] = FORMAT;
+			$params['format'] = $this->apiformat;
 		}
 		// open the connection
 		$ch = curl_init();
 		// set the url, number of POST vars, POST data
 		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_USERAGENT, USERAGENT);
+		curl_setopt($ch, CURLOPT_USERAGENT, $this->useragent);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-		curl_setopt($ch, CURLOPT_COOKIEFILE, COOKIES);
-		curl_setopt($ch, CURLOPT_COOKIEJAR, COOKIES);
+		curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiestore);
+		curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookiestore);
 		curl_setopt($ch, CURLOPT_POST, count($parms));
 		// choose multipart if necessary
 		if ($multipart)
@@ -273,7 +274,7 @@ class MediaWikiBot {
 	private function api_url($function)
 	{
 		// return the url
-		return DOMAIN . WIKI . "/api.php?action={$function}&";
+		return $this->api . "?action={$function}&";
 	}
 
 }
