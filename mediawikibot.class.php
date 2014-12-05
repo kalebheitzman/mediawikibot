@@ -58,7 +58,7 @@ class MediaWikiBot {
 		'feedwatchlist', 'help', 'paraminfo', 'rsd', 'compare', 'purge',
 		'rollback', 'delete', 'undelete', 'protect', 'block', 'unblock',
 		'move', 'edit', 'upload', 'filerevert', 'emailuser', 'watch',
-		'patrol', 'import', 'userrights');
+		'patrol', 'import', 'userrights', 'tokens');
 
 	/** Methods that need an xml format
 	 */
@@ -82,6 +82,11 @@ class MediaWikiBot {
 	protected $cookiestore = 'cookies.tmp';
 	protected $useragent   = 'WikimediaBot Framework by JKH';
 	protected $apiformat   = 'php';
+	
+	/**
+	 * Stored tokens
+	 */
+	private $edittoken = null;
 
 	/** Constructor
 	 */
@@ -149,6 +154,29 @@ class MediaWikiBot {
 		if ($data['login']['result'] != "Success") {
 			return $data;
 		}
+	}
+	
+	/** Return edit token - if none is available try to get one from the api
+	 */
+	public function getEditToken() {
+		if ($this->edittoken == null) {
+			$this->edittoken = $this->aquireEditToken();
+		}
+		return $this->edittoken;
+	}
+	
+	/** Try to aquire an edit token from the api
+	 */
+	protected function aquireEditToken() {
+		$edittoken = null;
+		
+		// see https://www.mediawiki.org/wiki/API:Tokens
+		$data = array( 'type' => 'edit' );
+		$retval = $this->tokens($data);
+		if (isset($retval['tokens']['edittoken'])) {
+			$edittoken = $retval['tokens']['edittoken'];
+		}
+		return $edittoken;
 	}
 
 	/** Standard processesing method
