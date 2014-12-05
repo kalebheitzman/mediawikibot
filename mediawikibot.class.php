@@ -225,12 +225,14 @@ class MediaWikiBot {
 		curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookiestore);
 		curl_setopt($ch, CURLOPT_POST, count($params));
 		// choose multipart if necessary
-		if ($multipart)
+		if ($multipart) {
 			// submit as multipart
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-		else
+		}
+		else {
 			// submit as normal
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
+		}
 		// execute the post
 		$results = curl_exec($ch);
 		// close the connection
