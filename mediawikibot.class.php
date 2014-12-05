@@ -85,9 +85,11 @@ class MediaWikiBot {
 
 	/** Constructor
 	 */
-	public function __construct( $api )
+	public function __construct( $api, $username = null, $password = null )
 	{
 		$this->api = $api;
+		$this->username = $username;
+		$this->password = $password;
 	}
 
 	/** Dynamic method server
@@ -120,11 +122,8 @@ class MediaWikiBot {
 	 *  MediaWiki requires a dual login method to confirm authenticity. This
 	 *  entire method takes that into account.
 	 */
-	public function login($init = null, $username = null, $password = null)
+	public function login($init = null)
 	{
-		if (isset($username)) $this->username = $username;
-		if (isset($password)) $this->password = $password;
-		
 		// build the url
 		$url = $this->api_url(__FUNCTION__);
 		// build the params
