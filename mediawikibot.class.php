@@ -106,8 +106,9 @@ class MediaWikiBot {
 	public function __call($method, $args) {
 		// get the params
 		$params = $args[0];
-		// check for multipart
-		$multipart = $args[1];
+		// check for forced multipart
+		$multipart = null;
+		if (isset($args[1])) $multipart = $args[1];
 		// check for valid method
 		if (in_array($method, $this->apimethods)) {
 			// get multipart info
