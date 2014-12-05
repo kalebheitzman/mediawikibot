@@ -83,6 +83,8 @@ class MediaWikiBot {
 	protected $useragent   = 'WikimediaBot Framework by JKH';
 	protected $apiformat   = 'php';
 	
+	private $debugMode = false;
+	
 	/**
 	 * Stored tokens
 	 */
@@ -121,6 +123,14 @@ class MediaWikiBot {
 			// not a valid method, kill the process
 			die("$method is not a valid method \r\n");
 		}
+	}
+	
+	/**
+	 * Sets the debug mode
+	 *
+	 */
+	public function setDebugMode($debugMode) {
+		$this->debugMode = $debugMode;
 	}
 
 	/** Log in and get the authentication tokens
@@ -238,7 +248,21 @@ class MediaWikiBot {
 		// close the connection
 		curl_close($ch);
 		// return the unserialized results
-		return $this->format_results($results, $params['format']);
+		$results = $this->format_results($results, $params['format']);
+		
+		if ($this->debugMode) {
+			echo "request to ". $url ."\n";
+			echo "with data ". print_r($params, true);
+			if ($multipart) {
+				$contenttype = "multipart/form-data";
+			}
+			else {
+				$contenttype = "application/x-www-form-urlencoded";
+			}
+			echo "posted as ". $contenttype . "\n\n";
+			echo "returned ". print_r($results, true) ."\n";
+		}
+		return $results;
 	}
 
 	/** Check for multipart method
