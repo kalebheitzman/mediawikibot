@@ -1,2 +1,69 @@
 h1. MediaWikiBot PHP Class
 
+The MediaWikiBot PHP Class provides an easy to use interface for the MediaWiki API.
+
+h2. Usage examples
+
+Common code at the beginning of each script:
+
+bc.. require_once('mediawikibot.class.php');
+
+$api = 'http://your.site/wiki/api.php';
+$wiki = new MediaWikiBot($api, 'username', 'password');
+//$wiki->setDebugMode(true); // enable this to see what's happening
+
+$loginerror = $wiki->login();
+if (isset($loginerror)) {
+   echo "login returned an error: ". print_r($loginerror, true) ."\n";
+   exit(1); 
+}
+
+// if you do not want to edit anything you don't need this
+$edittoken = $wiki->getEditToken();
+if ($edittoken == null) {
+   echo "Unable to aquire an edit token\n";
+   exit(2);
+}
+
+h3. Edit a page
+
+bc.. $page  = "Main_Page";
+// to edit a page you have to know its page-id
+$querydata = array(
+   'prop'       => 'info',
+   'titles'     => $page
+);
+$r = $wiki->query($querydata);
+$pages = $r['query']['pages'];
+$page = array_pop($pages);
+$pageid = $page['pageid'];
+
+$text = "== Main Page ==\nThis is the new text.\n";
+if ($pageid) {
+   $editdata = array(
+      'pageid'     => $pageid,
+      'text'       => "$text",
+      'bot'        => true,
+      'md5'        => md5($text),
+      'token'      => $edittoken,
+   );
+   $r = $wiki->edit($editdata);
+   // You may want to check if $r['edit']['result'] contains 'Success'
+}
+
+h3. Upload a file
+
+The following code works for php 5.3 (and probably 5.4). 
+For 5.5 and newer you may have to use a CURLFile-object instead of the 
+<code>@file;type=...</code> syntax.
+
+bc.. $file = '/tmp/test.jpg';
+$filename = 'JustATest.jpg';
+$uploaddata = array(
+   'filename' => $filename,
+   'text'     => "This is just a description.",
+   'file'     => "@". $file .";type=image/jpeg",
+   'token'    => $edittoken,
+);
+$r = $wiki->upload($uploaddata);
+// You may want to check if $r['upload']['result'] contains 'Success'
