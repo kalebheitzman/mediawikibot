@@ -58,7 +58,7 @@ class MediaWikiBot {
 		'feedwatchlist', 'help', 'paraminfo', 'rsd', 'compare', 'purge',
 		'rollback', 'delete', 'undelete', 'protect', 'block', 'unblock',
 		'move', 'edit', 'upload', 'filerevert', 'emailuser', 'watch',
-		'patrol', 'import', 'userrights');
+		'patrol', 'import', 'userrights', 'tokens');
 
 	/** Methods that need an xml format
 	 */
@@ -72,24 +72,31 @@ class MediaWikiBot {
 	/** Methods that do not need a param check
 	 */
 	protected $parampass = array('login', 'logout', 'rsd');
+	
+	/**
+	 * Configuration variables 
+	 */
+	protected $api;
+	protected $username    = 'bot';
+	protected $password    = 'password';
+	protected $cookiestore = 'cookies.tmp';
+	protected $useragent   = 'WikimediaBot Framework by JKH';
+	protected $apiformat   = 'php';
+	
+	private $debugMode = false;
+	
+	/**
+	 * Stored tokens
+	 */
+	private $edittoken = null;
 
 	/** Constructor
 	 */
-	public function __construct()
+	public function __construct( $api, $username = null, $password = null )
 	{
-		/** Set some constants
-		 *
-		 *  You should override these in the bot that you are creating.
-		 *  Simply redeclare them after you have done a php require on the
-		 *  MediaWikiBot class.
-		 */
-		define('DOMAIN', 'http://example.com');
-		define('WIKI', '/wiki');
-		define('USERNAME', 'bot');
-		define('PASSWORD', 'password');
-		define('COOKIES', 'cookies.tmp');
-		define('USERAGENT', 'WikimediaBot Framework by JKH');
-		define('FORMAT', 'php');
+		$this->api = $api;
+		$this->username = $username;
+		$this->password = $password;
 	}
 
 	/** Dynamic method server
@@ -101,8 +108,9 @@ class MediaWikiBot {
 	public function __call($method, $args) {
 		// get the params
 		$params = $args[0];
-		// check for multipart
-		$multipart = $args[1];
+		// check for forced multipart
+		$multipart = null;
+		if (isset($args[1])) $multipart = $args[1];
 		// check for valid method
 		if (in_array($method, $this->apimethods)) {
 			// get multipart info
@@ -116,6 +124,14 @@ class MediaWikiBot {
 			die("$method is not a valid method \r\n");
 		}
 	}
+	
+	/**
+	 * Sets the debug mode
+	 *
+	 */
+	public function setDebugMode($debugMode) {
+		$this->debugMode = $debugMode;
+	}
 
 	/** Log in and get the authentication tokens
 	 *
@@ -128,8 +144,8 @@ class MediaWikiBot {
 		$url = $this->api_url(__FUNCTION__);
 		// build the params
 		$params = array(
-			'lgname' => USERNAME,
-			'lgpassword' => PASSWORD,
+			'lgname' => $this->username,
+			'lgpassword' => $this->password,
 			'format' => 'php' // do not change this from php
 		);
 		// get initial login info
@@ -149,6 +165,29 @@ class MediaWikiBot {
 		if ($data['login']['result'] != "Success") {
 			return $data;
 		}
+	}
+	
+	/** Return edit token - if none is available try to get one from the api
+	 */
+	public function getEditToken() {
+		if ($this->edittoken == null) {
+			$this->edittoken = $this->aquireEditToken();
+		}
+		return $this->edittoken;
+	}
+	
+	/** Try to aquire an edit token from the api
+	 */
+	protected function aquireEditToken() {
+		$edittoken = null;
+		
+		// see https://www.mediawiki.org/wiki/API:Tokens
+		$data = array( 'type' => 'edit' );
+		$retval = $this->tokens($data);
+		if (isset($retval['tokens']['edittoken'])) {
+			$edittoken = $retval['tokens']['edittoken'];
+		}
+		return $edittoken;
 	}
 
 	/** Standard processesing method
@@ -183,31 +222,47 @@ class MediaWikiBot {
 	{
 		// set the format if not specified
 		if (empty($params['format'])) {
-			$params['format'] = FORMAT;
+			$params['format'] = $this->apiformat;
 		}
 		// open the connection
 		$ch = curl_init();
 		// set the url, number of POST vars, POST data
 		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_USERAGENT, USERAGENT);
+		curl_setopt($ch, CURLOPT_USERAGENT, $this->useragent);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-		curl_setopt($ch, CURLOPT_COOKIEFILE, COOKIES);
-		curl_setopt($ch, CURLOPT_COOKIEJAR, COOKIES);
-		curl_setopt($ch, CURLOPT_POST, count($parms));
+		curl_setopt($ch, CURLOPT_COOKIEFILE, $this->cookiestore);
+		curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookiestore);
+		curl_setopt($ch, CURLOPT_POST, count($params));
 		// choose multipart if necessary
-		if ($multipart)
+		if ($multipart) {
 			// submit as multipart
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-		else
+		}
+		else {
 			// submit as normal
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $this->urlize_params($params));
+		}
 		// execute the post
 		$results = curl_exec($ch);
 		// close the connection
 		curl_close($ch);
 		// return the unserialized results
-		return $this->format_results($results, $params['format']);
+		$results = $this->format_results($results, $params['format']);
+		
+		if ($this->debugMode) {
+			echo "request to ". $url ."\n";
+			echo "with data ". print_r($params, true);
+			if ($multipart) {
+				$contenttype = "multipart/form-data";
+			}
+			else {
+				$contenttype = "application/x-www-form-urlencoded";
+			}
+			echo "posted as ". $contenttype . "\n\n";
+			echo "returned ". print_r($results, true) ."\n";
+		}
+		return $results;
 	}
 
 	/** Check for multipart method
@@ -259,8 +314,9 @@ class MediaWikiBot {
 	private function urlize_params($params)
 	{
 		// url-ify the data for POST
+		$urlstring = "";
 		foreach ($params as $key => $value) {
-			$urlstring .= $key . '=' . $value . '&';
+			$urlstring .= urlencode($key) . '=' . urlencode($value) . '&';
 		}
 		// pull the & off the end
 		rtrim($urlstring, '&');
@@ -273,7 +329,7 @@ class MediaWikiBot {
 	private function api_url($function)
 	{
 		// return the url
-		return DOMAIN . WIKI . "/api.php?action={$function}&";
+		return $this->api . "?action={$function}&";
 	}
 
 }
